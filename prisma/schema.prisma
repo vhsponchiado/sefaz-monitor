@@ -13,3 +13,9 @@ model TechnicalNote {
   description String
   createdAt   DateTime @default(now())
 }
+
+model ServiceAvailability {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  data      Json
+  createdAt DateTime @default(now())
+}
