@@ -150,11 +150,162 @@ async function scrapeWebsite() {
   }
 }
 
-// Agendar o scraping para rodar a cada 5 minutos
-cron.schedule("*/5 * * * *", async () => {
-  console.log("\nRunning scheduled scraping task...");
-  await scrapeWebsite();
-});
+async function getLatestAvailabilityFromDB() {
+  try {
+    return await prisma.serviceAvailability.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching latest availability:", error);
+    return null;
+  }
+}
+
+async function saveAvailabilityToDB(data) {
+  try {
+    await prisma.serviceAvailability.create({
+      data: {
+        data: data,
+      },
+    });
+    console.log("New availability data saved to database");
+  } catch (error) {
+    console.error("Error saving availability data:", error);
+  }
+}
+
+function mapStatus(imgSrc) {
+  if (imgSrc.includes("verde")) return "🟢";
+  if (imgSrc.includes("amarela")) return "🟡";
+  if (imgSrc.includes("vermelha")) return "🔴";
+  return "❓";
+}
+
+async function scrapeAvailability() {
+  try {
+    const url =
+      "https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?versao=0.00&tipoConteudo=P2c98tUpxrI=";
+
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
+      Accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Accept-Language": "pt-BR,pt;q=0.9",
+      "Cache-Control": "no-cache",
+      Cookie:
+        "JSESSIONID=javaprod19~413DF4150236B1466C8ECB85EB796C06.catalog19; onlineCampusSelection=C; __utma=59190898.1874896314.1491088625.1491088625.1491088625.1; __utmb=59190898.2.10.1491088625; __utmc=59190898; __utmz=59190898.1491088625.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);",
+      Pragma: "no-cache",
+      Referer: "https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx",
+      "Upgrade-Insecure-Requests": "1",
+    };
+
+    const response = await axios.get(url, {
+      headers,
+      maxRedirects: 3,
+      validateStatus: (status) => status >= 200 && status < 400,
+    });
+
+    const $ = cheerio.load(response.data);
+    const table = $("#ctl00_ContentPlaceHolder1_gdvDisponibilidade2");
+    const lastVerification =
+      table
+        .find("caption")
+        .text()
+        .match(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/)?.[0] || "Unknown";
+
+    // Obter dados e transformar na estrutura desejada
+    const autorizadores = {};
+
+    table.find("tbody tr").each((i, row) => {
+      const cells = $(row).find("td");
+      const autorizadorData = {};
+
+      cells.each((j, cell) => {
+        const header = $("th").eq(j).text().trim();
+        const $cell = $(cell);
+
+        // Extrair o src da imagem ou string vazia
+        const imgSrc = $cell.find("img").attr("src") || "";
+
+        // Determinar o valor usando a função mapStatus
+        const value = $cell.find("img").length
+          ? mapStatus(imgSrc) // Usar a função de mapeamento
+          : $cell.text().trim();
+
+        if (header === "Autorizador") {
+          autorizadorData.key = value;
+        } else {
+          autorizadorData[header] = value;
+        }
+      });
+
+      if (autorizadorData.key) {
+        const { key, ...rest } = autorizadorData;
+        autorizadores[key] = rest;
+      }
+    });
+
+    // Verificar mudanças
+    const latestFromDB = await getLatestAvailabilityFromDB();
+    const previousData = latestFromDB?.data || {};
+
+    if (JSON.stringify(autorizadores) !== JSON.stringify(previousData)) {
+      await saveAvailabilityToDB(autorizadores);
+
+      // Montar mensagem para o Discord
+      const discordFields = Object.entries(autorizadores).map(
+        ([autorizador, dados]) => {
+          return {
+            name: `📌 ${autorizador}`,
+            value: Object.entries(dados)
+              .map(([servico, status]) => `${servico}: ${status}`)
+              .join("\n"),
+            inline: true,
+          };
+        }
+      );
+
+      const discordMessage = {
+        embeds: [
+          {
+            title: "📢 Status de Disponibilidade Atualizado",
+            description:
+              `**Última Verificação:** ${lastVerification}\n` +
+              "```diff\n" +
+              "+ Atualização detectada nos seguintes autorizadores:\n" +
+              "```",
+            color: 0x00ff00,
+            fields: discordFields.slice(0, 25), // Limite do Discord
+            footer: {
+              text: `Total de autorizadores: ${
+                Object.keys(autorizadores).length
+              }`,
+            },
+          },
+        ],
+      };
+
+      await fetch(
+        "https://discord.com/api/webhooks/1339655088930684968/_Q7jN35zij-iJxCKtzCZhOK_Og8kydofYNrvDCfojqHDnfmQIcygPqrby0quT_7QoC91",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(discordMessage),
+        }
+      );
+    }
+
+    return {
+      lastVerification,
+      autorizadores,
+    };
+  } catch (error) {
+    console.error("Erro no scrapeAvailability:", error.message);
+    return null;
+  }
+}
 
 app.get("/", (req, res) => {
   res.send("Server is running");
@@ -175,6 +326,27 @@ app.get("/check-notes", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+app.get("/check-availability", async (req, res) => {
+  try {
+    const data = await scrapeAvailability();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Agendar o scraping para rodar a cada 5 minutos
+cron.schedule("*/5 * * * *", async () => {
+  console.log("\nRunning scheduled scraping task...");
+  await scrapeWebsite();
+});
+
+// Agendar verificação a cada 5 minutos
+cron.schedule("*/5 * * * *", async () => {
+  console.log("\nChecking availability...");
+  await scrapeAvailability();
 });
 
 app.listen(port, () => {
