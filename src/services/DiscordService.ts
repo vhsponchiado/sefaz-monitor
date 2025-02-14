@@ -1,60 +1,87 @@
 import fetch from "node-fetch";
 import { TechnicalNote } from "../models/TechnicalNote";
 import { AvailabilityStatus } from "../models/Availability";
-
-const WEBHOOK_URL = "https://discord.com/api/webhooks/1339655088930684968/_Q7jN35zij-iJxCKtzCZhOK_Og8kydofYNrvDCfojqHDnfmQIcygPqrby0quT_7QoC91";
+import WebhookService from "./WebhookService";
+import { WebhookType } from "../models/Webhook";
 
 export default {
   async sendTechnicalNoteNotification(note: TechnicalNote) {
-    const message = {
-      embeds: [{
-        title: "📄 Nova Nota Técnica Encontrada!",
-        description: `**${note.title}**\n\n[${note.description}](https://www.nfe.fazenda.gov.br/portal/${note.link})`,
-        color: 0x0099ff,
-        image: {
-          url: "https://media.seudinheiro.com/uploads/2023/03/Dinheiro-pra-Receita-SD.jpg"
-        }
-      }]
-    };
+    const webhooks = await WebhookService.getWebhooksByType(
+      WebhookType.TECHNICAL_NOTE
+    );
 
-    await this.sendNotification(message);
+    console.log("Sending technical note notification to", webhooks);
+
+    for (const webhook of webhooks) {
+      await this.sendNotification(
+        webhook.url,
+        this.createTechnicalNoteMessage(note)
+      );
+    }
   },
 
   async sendAvailabilityNotification(status: AvailabilityStatus) {
+    const webhooks = await WebhookService.getWebhooksByType(
+      WebhookType.AVAILABILITY
+    );
+
+    console.log("Sending availability notification to", webhooks);
+
+    for (const webhook of webhooks) {
+      await this.sendNotification(
+        webhook.url,
+        this.createAvailabilityMessage(status)
+      );
+    }
+  },
+
+  createTechnicalNoteMessage(note: TechnicalNote) {
+    return {
+      embeds: [
+        {
+          title: "📄 Nova Nota Técnica Encontrada!",
+          description: `**${note.title}**\n\n[${note.description}](https://www.nfe.fazenda.gov.br/portal/${note.link})`,
+          color: 0x0099ff,
+          image: {
+            url: "https://media.seudinheiro.com/uploads/2023/03/Dinheiro-pra-Receita-SD.jpg",
+          },
+        },
+      ],
+    };
+  },
+
+  createAvailabilityMessage(status: AvailabilityStatus) {
     const fields = Object.entries(status).map(([autorizador, services]) => ({
       name: `📌 ${autorizador}`,
       value: Object.entries(services)
         .map(([service, status]) => `${service}: ${status}`)
         .join("\n"),
-      inline: true
+      inline: true,
     }));
 
-    const message = {
-      embeds: [{
-        title: "📢 Status de Disponibilidade Atualizado",
-        color: 0x00ff00,
-        fields: fields.slice(0, 25),
-        footer: {
-            text: `Total de autorizadores: ${Object.keys(status).length}\n
-🟢 Consulta retornou resposta positiva.\n
-🟡 Primeira resposta negativa (serviço indisponível ou falha de conexão). Dura até 10 min.\n
-🔴 Respostas negativas seguidas indicam falha contínua.`
+    return {
+      embeds: [
+        {
+          title: "📢 Status de Disponibilidade Atualizado",
+          color: 0x00ff00,
+          fields: fields.slice(0, 25),
+          footer: {
+            text: `Total de autorizadores: ${Object.keys(status).length}`,
+          },
         },
-      }]
+      ],
     };
-
-    await this.sendNotification(message);
   },
 
-  async sendNotification(message: any) {
+  async sendNotification(webhookUrl: string, message: any) {
     try {
-      await fetch(WEBHOOK_URL, {
+      await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(message)
+        body: JSON.stringify(message),
       });
     } catch (error) {
-      console.error("Discord notification failed:", error);
+      console.error(`Error sending to webhook ${webhookUrl}:`, error);
     }
-  }
+  },
 };
