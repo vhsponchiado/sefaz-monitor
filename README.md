@@ -18,6 +18,12 @@ Automatizar a verificação manual de:
   - Imagens ilustrativas  
 - 🛠 **API para gestão de webhooks**  
 
+## 📷 Exemplos de Notificações  
+### 📡 Disponibilidade dos Serviços  
+![Disponibilidade](https://github.com/user-attachments/assets/62716c5a-7fcf-4340-80fd-c8aff99d1ecc)  
+
+### 📄 Notificação de Nota Técnica  
+![Nota Técnica](https://github.com/user-attachments/assets/cac76c3f-911d-4c55-a937-31a4f7df886f)  
 
 ## 🛠️ Tecnologias Utilizadas  
 - **Fastify**  
