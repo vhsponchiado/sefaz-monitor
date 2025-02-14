@@ -67,7 +67,7 @@ export default {
     if (imgSrc.includes("verde")) return "🟢";
     if (imgSrc.includes("amarela")) return "🟡";
     if (imgSrc.includes("vermelha")) return "🔴";
-    return "❓";
+    return "-";
   },
 
   getHeaders() {
