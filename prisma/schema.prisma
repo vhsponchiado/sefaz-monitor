@@ -19,3 +19,16 @@ model ServiceAvailability {
   data      Json
   createdAt DateTime @default(now())
 }
+
+enum WebhookType {
+  TECHNICAL_NOTE
+  AVAILABILITY
+}
+
+model Webhook {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  url         String     @unique
+  type        WebhookType
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
