@@ -35,8 +35,11 @@ export default {
         color: 0x00ff00,
         fields: fields.slice(0, 25),
         footer: {
-          text: `Total de autorizadores: ${Object.keys(status).length}`
-        }
+            text: `Total de autorizadores: ${Object.keys(status).length}\n
+🟢 Consulta retornou resposta positiva.\n
+🟡 Primeira resposta negativa (serviço indisponível ou falha de conexão). Dura até 10 min.\n
+🔴 Respostas negativas seguidas indicam falha contínua.`
+        },
       }]
     };
 
