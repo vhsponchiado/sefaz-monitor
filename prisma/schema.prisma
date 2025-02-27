@@ -1,5 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -26,9 +27,9 @@ enum WebhookType {
 }
 
 model Webhook {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  url         String     @unique
-  type        WebhookType
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  url       String      @unique
+  type      WebhookType
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
