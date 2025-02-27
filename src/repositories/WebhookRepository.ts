@@ -3,24 +3,42 @@ import { WebhookType, Webhook, WebhookDocument } from "../models/Webhook";
 
 export default {
   async create(webhook: Webhook): Promise<WebhookDocument> {
-    return prisma.webhook.create({
-      data: webhook
+    const createdWebhook = await prisma.webhook.create({
+      data: {
+        url: webhook.url,
+        type: webhook.type as WebhookType, // Converte explicitamente
+      },
     });
+
+    return {
+      ...createdWebhook,
+      type: WebhookType[createdWebhook.type as keyof typeof WebhookType], // Converte string para enum
+    };
   },
 
   async findByType(type: WebhookType): Promise<WebhookDocument[]> {
-    return prisma.webhook.findMany({
-      where: { type }
+    const webhooks = await prisma.webhook.findMany({
+      where: { type },
     });
+
+    return webhooks.map((webhook) => ({
+      ...webhook,
+      type: WebhookType[webhook.type as keyof typeof WebhookType], // Converte string para enum
+    }));
   },
 
   async delete(id: string): Promise<void> {
     await prisma.webhook.delete({
-      where: { id }
+      where: { id },
     });
   },
 
   async getAll(): Promise<WebhookDocument[]> {
-    return prisma.webhook.findMany();
-  }
+    const webhooks = await prisma.webhook.findMany();
+
+    return webhooks.map((webhook) => ({
+      ...webhook,
+      type: WebhookType[webhook.type as keyof typeof WebhookType], 
+    }));
+  },
 };
