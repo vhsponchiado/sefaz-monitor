@@ -1,5 +1,5 @@
-import WebhookRepository from "../repositories/WebhookRepository";
-import { Webhook, WebhookType, WebhookDocument } from "../models/Webhook";
+import WebhookRepository from "../repositories/WebhookRepository.js";
+import { Webhook, WebhookType, WebhookDocument } from "../models/Webhook.js";
 
 export default {
   async addWebhook(webhook: Webhook): Promise<WebhookDocument> {

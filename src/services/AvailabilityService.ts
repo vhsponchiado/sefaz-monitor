@@ -1,8 +1,8 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import AvailabilityRepository from "../repositories/AvailabilityRepository";
-import DiscordService from "./DiscordService";
-import { AvailabilityStatus } from "../models/Availability";
+import AvailabilityRepository from "../repositories/AvailabilityRepository.js";
+import DiscordService from "./DiscordService.js";
+import { AvailabilityStatus } from "../models/Availability.js";
 
 const SCRAPE_URL =
   "https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?versao=0.00&tipoConteudo=P2c98tUpxrI=";

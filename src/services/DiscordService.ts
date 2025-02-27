@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
-import { TechnicalNote } from "../models/TechnicalNote";
-import { AvailabilityStatus } from "../models/Availability";
-import WebhookService from "./WebhookService";
-import { WebhookType } from "../models/Webhook";
+import { TechnicalNote } from "../models/TechnicalNote.js";
+import { AvailabilityStatus } from "../models/Availability.js";
+import WebhookService from "./WebhookService.js";
+import { WebhookType } from "../models/Webhook.js";
 
 export default {
   async sendTechnicalNoteNotification(note: TechnicalNote) {

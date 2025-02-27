@@ -1,5 +1,5 @@
-import prisma from "../config/prisma";
-import { WebhookType, Webhook, WebhookDocument } from "../models/Webhook";
+import prisma from "../config/prisma.js";
+import { WebhookType, Webhook, WebhookDocument } from "../models/Webhook.js";
 
 export default {
   async create(webhook: Webhook): Promise<WebhookDocument> {

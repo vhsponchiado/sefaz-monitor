@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import WebhookController from "../controllers/WebhookController";
+import WebhookController from "../controllers/WebhookController.js";
 
 export default async (app: FastifyInstance) => {
   app.post("/webhooks", WebhookController.addWebhook);

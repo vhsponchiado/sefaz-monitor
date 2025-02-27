@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import TechnicalNoteService from "../services/TechnicalNoteService";
+import TechnicalNoteService from "../services/TechnicalNoteService.js";
 
 export default {
   schedule: () => {

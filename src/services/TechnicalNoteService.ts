@@ -1,8 +1,8 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import TechnicalNoteRepository from "../repositories/TechnicalNoteRepository";
-import DiscordService from "./DiscordService";
-import { TechnicalNote } from "../models/TechnicalNote";
+import TechnicalNoteRepository from "../repositories/TechnicalNoteRepository.js";
+import DiscordService from "./DiscordService.js";
+import { TechnicalNote } from "../models/TechnicalNote.js";
 
 const SCRAPE_URL =
   "https://www.nfe.fazenda.gov.br/portal/listaConteudo.aspx?tipoConteudo=04BIflQt1aY=";

@@ -1,5 +1,5 @@
-import prisma from "../config/prisma";
-import { TechnicalNote } from "../models/TechnicalNote";
+import prisma from "../config/prisma.js";
+import { TechnicalNote } from "../models/TechnicalNote.js";
 
 export default {
   async getLatest() {

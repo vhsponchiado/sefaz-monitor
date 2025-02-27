@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import AvailabilityService from "../services/AvailabilityService";
+import AvailabilityService from "../services/AvailabilityService.js";
 
 export default {
   async checkAvailability(_: FastifyRequest, reply: FastifyReply) {

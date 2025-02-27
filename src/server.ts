@@ -1,14 +1,14 @@
-import { createServer } from "./config/app";
-import prisma from "./config/prisma";
-import technicalNoteTask from "./tasks/technicalNoteTask";
-import availabilityTask from "./tasks/availabilityTask";
+import { createServer } from "./config/app.js";
+import prisma from "./config/prisma.js";
+import technicalNoteTask from "./tasks/technicalNoteTask.js";
+import availabilityTask from "./tasks/availabilityTask.js";
 
 const start = async () => {
   const app = createServer();
   const port = 14205;
 
   // Registrar rotas
-  await app.register(import("./routes/index"));
+  await app.register(import("./routes/index.js"));
 
   // Iniciar tarefas agendadas
   technicalNoteTask.schedule();
