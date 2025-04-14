@@ -3,17 +3,22 @@ import { WebhookType, Webhook, WebhookDocument } from "../models/Webhook.js";
 
 export default {
   async create(webhook: Webhook): Promise<WebhookDocument> {
-    const createdWebhook = await prisma.webhook.create({
-      data: {
-        url: webhook.url,
-        type: webhook.type as WebhookType, // Converte explicitamente
-      },
-    });
+    try {
+      const createdWebhook = await prisma.webhook.create({
+        data: {
+          url: webhook.url,
+          type: webhook.type as WebhookType,
+        },
+      });
 
-    return {
-      ...createdWebhook,
-      type: WebhookType[createdWebhook.type as keyof typeof WebhookType], // Converte string para enum
-    };
+      return {
+        ...createdWebhook,
+        type: WebhookType[createdWebhook.type as keyof typeof WebhookType],
+      };
+    } catch (err) {
+      console.error("Erro ao criar webhook:", err);
+      throw new Error("Erro ao criar webhook"); // ou pode retornar algo padrão, se quiser
+    }
   },
 
   async findByType(type: WebhookType): Promise<WebhookDocument[]> {
@@ -38,7 +43,7 @@ export default {
 
     return webhooks.map((webhook) => ({
       ...webhook,
-      type: WebhookType[webhook.type as keyof typeof WebhookType], 
+      type: WebhookType[webhook.type as keyof typeof WebhookType],
     }));
   },
 };

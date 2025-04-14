@@ -2,6 +2,7 @@ import { createServer } from "./config/app.js";
 import prisma from "./config/prisma.js";
 import technicalNoteTask from "./tasks/technicalNoteTask.js";
 import availabilityTask from "./tasks/availabilityTask.js";
+import contingencyTask from "./tasks/contingencyTask.js";
 
 const start = async () => {
   const app = createServer();
@@ -13,6 +14,7 @@ const start = async () => {
   // Iniciar tarefas agendadas
   technicalNoteTask.schedule();
   availabilityTask.schedule();
+  contingencyTask.schedule();
 
   // Iniciar servidor
   app.listen({ port }, (err) => {
