@@ -24,6 +24,7 @@ model ServiceAvailability {
 enum WebhookType {
   TECHNICAL_NOTE
   AVAILABILITY
+  CONTINGENCY
 }
 
 model Webhook {
@@ -32,4 +33,11 @@ model Webhook {
   type      WebhookType
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+model Contingency{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @unique
+  description String
+  createdAt   DateTime @default(now())
 }
