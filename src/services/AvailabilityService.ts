@@ -48,29 +48,56 @@ export default {
     }
   },
 
-  async checkAvailability() {
+  async checkAvailability(): Promise<void> {
     const [latestStatus, currentStatus] = await Promise.all([
       AvailabilityRepository.getLatest(),
       this.scrapeAvailability(),
     ]);
 
-    if (JSON.stringify(currentStatus) !== JSON.stringify(latestStatus?.data)) {
+    const lastData = latestStatus?.data as AvailabilityStatus;
+
+    if (JSON.stringify(currentStatus) !== JSON.stringify(lastData)) {
       console.log("** Availability status has changed! **");
+
+      const changes = this.findChanges(lastData, currentStatus);
+
       console.log("- Creating new availability status");
       await AvailabilityRepository.create(currentStatus);
-      console.log("- Sending availability notification");
-      await DiscordService.sendAvailabilityNotification(currentStatus);
+
+      console.log("- Sending availability notification for changes");
+      await DiscordService.sendAvailabilityNotification(changes);
     }
   },
 
-  mapStatus(imgSrc: string) {
+  mapStatus(imgSrc: string): string {
     if (imgSrc.includes("verde")) return "🟢";
     if (imgSrc.includes("amarela")) return "🟡";
     if (imgSrc.includes("vermelha")) return "🔴";
     return "-";
   },
 
-  getHeaders() {
+  findChanges(
+    oldStatus: AvailabilityStatus,
+    newStatus: AvailabilityStatus
+  ): AvailabilityStatus {
+    const changes: AvailabilityStatus = {};
+    console.log("Verificando mudanças");
+    console.log("old", oldStatus);
+    console.log("newStatus", newStatus);
+    Object.entries(newStatus).forEach(([autorizador, services]) => {
+      Object.entries(services).forEach(([service, newValue]) => {
+        const oldValue = oldStatus?.[autorizador]?.[service] ?? "-";
+        if (newValue !== oldValue) {
+          if (!changes[autorizador]) changes[autorizador] = {};
+          changes[autorizador][service] = newValue;
+        }
+      });
+    });
+
+    return changes;
+  },
+
+  getHeaders(): Record<string, string> {
     return {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
@@ -80,7 +107,7 @@ export default {
       "Accept-Language": "pt-BR,pt;q=0.9",
       "Cache-Control": "no-cache",
       Cookie:
-        "JSESSIONID=javaprod19~413DF4150236B1466C8ECB85EB796C06.catalog19; onlineCampusSelection=C; __utma=59190898.1874896314.1491088625.1491088625.1491088625.1; __utmb=59190898.2.10.1491088625; __utmc=59190898; __utmz=59190898.1491088625.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);",
+        "JSESSIONID=javaprod19~413DF4150236B1466C8ECB85EB796C06.catalog19; onlineCampusSelection=C;",
       Pragma: "no-cache",
       Referer: "https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx",
       "Upgrade-Insecure-Requests": "1",
