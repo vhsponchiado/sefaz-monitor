@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import TechnicalNoteService from "../services/TechnicalNoteService";
-import TechnicalNoteRepository from "../repositories/TechnicalNoteRepository";
+import TechnicalNoteService from "../services/TechnicalNoteService.js";
 
 export default {
   async checkNotes(_: FastifyRequest, reply: FastifyReply) {

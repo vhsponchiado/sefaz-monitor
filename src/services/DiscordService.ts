@@ -1,8 +1,9 @@
 import fetch from "node-fetch";
-import { TechnicalNote } from "../models/TechnicalNote";
-import { AvailabilityStatus } from "../models/Availability";
-import WebhookService from "./WebhookService";
-import { WebhookType } from "../models/Webhook";
+import { TechnicalNote } from "../models/TechnicalNote.js";
+import { AvailabilityStatus } from "../models/Availability.js";
+import WebhookService from "./WebhookService.js";
+import { WebhookType } from "../models/Webhook.js";
+import { Contingency } from "../models/Contingency.js";
 
 export default {
   async sendTechnicalNoteNotification(note: TechnicalNote) {
@@ -35,6 +36,21 @@ export default {
     }
   },
 
+  async sendContingencyNotification(contingency: Contingency) {
+    const webhooks = await WebhookService.getWebhooksByType(
+      WebhookType.CONTINGENCY
+    );
+
+    console.log("Sending contingency notification to", webhooks);
+
+    for (const webhook of webhooks) {
+      await this.sendNotification(
+        webhook.url,
+        this.createContingencyMessage(contingency)
+      );
+    }
+  },
+
   createTechnicalNoteMessage(note: TechnicalNote) {
     return {
       embeds: [
@@ -45,6 +61,18 @@ export default {
           image: {
             url: "https://media.seudinheiro.com/uploads/2023/03/Dinheiro-pra-Receita-SD.jpg",
           },
+        },
+      ],
+    };
+  },
+
+  createContingencyMessage(contingency: Contingency) {
+    return {
+      embeds: [
+        {
+          title: `${contingency.title}`,
+          description: `**${contingency.description}**`,
+          color: 0xda9547,
         },
       ],
     };

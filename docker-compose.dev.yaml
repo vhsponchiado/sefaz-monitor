@@ -1,0 +1,13 @@
+x-app-common: &app-common
+  build:
+    context: .
+    dockerfile: ./Dockerfile
+  restart: unless-stopped
+  env_file:
+    - .env
+
+services:
+  monitor-1:
+    container_name: 'sefaz_monitor_1'
+    network_mode: host
+    <<: *app-common

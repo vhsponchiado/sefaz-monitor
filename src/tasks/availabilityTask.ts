@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import AvailabilityService from "../services/AvailabilityService";
+import AvailabilityService from "../services/AvailabilityService.js";
 
 export default {
   schedule: () => {

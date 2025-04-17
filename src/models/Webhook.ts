@@ -1,6 +1,7 @@
 export enum WebhookType {
   TECHNICAL_NOTE = "TECHNICAL_NOTE",
   AVAILABILITY = "AVAILABILITY",
+  CONTINGENCY = "CONTINGENCY"
 }
 
 export interface Webhook {

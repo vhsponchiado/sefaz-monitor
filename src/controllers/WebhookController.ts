@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import WebhookService from "../services/WebhookService";
-import { WebhookType } from "../models/Webhook";
+import WebhookService from "../services/WebhookService.js";
+import { WebhookType } from "../models/Webhook.js";
 
 interface AddWebhookRequest {
   url: string;

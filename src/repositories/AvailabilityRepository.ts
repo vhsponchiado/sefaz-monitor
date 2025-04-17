@@ -1,5 +1,5 @@
-import prisma from "../config/prisma";
-import { AvailabilityStatus } from "../models/Availability";
+import prisma from "../config/prisma.js";
+import { AvailabilityStatus } from "../models/Availability.js";
 
 export default {
   async getLatest() {
